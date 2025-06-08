@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHODO DSA Instructor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables for the new theme */
+        :root {
+            --bg-darkest: #121212; /* Overall page background */
+            --bg-sidebar: #6A0D26; /* Maroon for the sidebar */
+            --bg-main: #192A56; /* Dark blue for the main chat area */
+            --bg-chat-elements: #14213d; /* Darker blue for header/input */
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --accent-color: #3498DB; /* A vibrant blue for user messages & buttons */
+            --accent-hover: #5DADE2;
+            --font-primary: 'Inter', sans-serif;
+            --font-code: 'Roboto Mono', monospace;
+        }
+
+        /* Basic Resets and Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--font-primary);
+            background-color: var(--bg-darkest);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Main App Layout - Changed to Flexbox Row */
+        #app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* --- NEW: Sidebar Styles --- */
+        #sidebar {
+            width: 240px;
+            background-color: var(--bg-sidebar);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 10px;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.5);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 0 10px 20px 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .logo {
+            width: 35px;
+            height: 35px;
+            margin-right: 12px;
+        }
+        .logo .node { fill: var(--accent-color); }
+        .logo .link { stroke: var(--text-secondary); stroke-width: 4; }
+
+        .sidebar-header h1 {
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        #sidebar nav {
+            flex-grow: 1;
+        }
+
+        #sidebar ul {
+            list-style-type: none;
+        }
+
+        #sidebar li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        #sidebar li a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        #sidebar li a.active {
+            background-color: var(--bg-main);
+            font-weight: 700;
+        }
+        
+        #sidebar svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            fill: currentColor;
+        }
+        
+        #sidebar .settings {
+            margin-top: auto; /* Pushes settings to the bottom */
+        }
+
+        /* --- Main Content Area --- */
+        #main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+        }
+
+        /* Header in Main Content */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Pushes items to ends */
+            padding: 15px 25px;
+            background-color: var(--bg-chat-elements);
+            border-bottom: 1px solid #1f3a6e;
+            flex-shrink: 0;
+        }
+
+        #ask-question-btn {
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 16px;
+            font-family: var(--font-primary);
+            font-weight: 500;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #ask-question-btn:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        /* Chat Window */
+        #chat-window {
+            flex-grow: 1;
+            padding: 20px 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Custom Scrollbar */
+        #chat-window::-webkit-scrollbar { width: 8px; }
+        #chat-window::-webkit-scrollbar-track { background: var(--bg-main); }
+        #chat-window::-webkit-scrollbar-thumb { background-color: #2c498d; border-radius: 10px; }
+        #chat-window::-webkit-scrollbar-thumb:hover { background-color: #3b62b1; }
+
+        /* Message Styling */
+        .message {
+            display: flex;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .message-bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.6; }
+        .user-message { align-self: flex-end; }
+        .user-message .message-bubble { background-color: var(--accent-color); color: var(--text-primary); border-bottom-right-radius: 5px; }
+        .bot-message { align-self: flex-start; }
+        .bot-message .message-bubble { background-color: var(--bg-chat-elements); color: var(--text-primary); border-bottom-left-radius: 5px; }
+        
+        /* Markdown for Code Blocks */
+        .bot-message pre { background-color: #0d0d0d; border: 1px solid #333; border-radius: 8px; padding: 1em; overflow-x: auto; font-family: var(--font-code); font-size: 0.9em; margin: 1em 0; white-space: pre-wrap; }
+        .bot-message code { font-family: var(--font-code); color: #c5c8c6; }
+        .bot-message .message-bubble > code { background-color: #3e3e3e; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+        /* Typing Indicator */
+        .typing-indicator { display: flex; align-items: center; gap: 5px; }
+        .typing-indicator .dot { width: 8px; height: 8px; background-color: var(--text-secondary); border-radius: 50%; animation: typing-bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        /* Chat Input Area */
+        #chat-form-container {
+            padding: 15px 25px;
+            background-color: var(--bg-chat-elements);
+            border-top: 1px solid #1f3a6e;
+            flex-shrink: 0;
+        }
+        
+        /* --- NEW: Warning and Label --- */
+        #warning-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+        #warning-message svg {
+            width: 18px;
+            height: 18px;
+            fill: #f39c12; /* Warning yellow */
+            flex-shrink: 0;
+        }
+
+        #instructor-response-label {
+            text-align: center;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        #chat-form { display: flex; align-items: center; gap: 10px; }
+        #user-input { flex-grow: 1; background-color: var(--bg-main); border: 1px solid #2c498d; border-radius: 25px; padding: 12px 20px; font-size: 1em; color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+        #user-input:focus { border-color: var(--accent-color); }
+        #send-button { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background-color: var(--accent-color); border: none; border-radius: 50%; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+        #send-button:hover { background-color: var(--accent-hover); }
+        #send-button:active { transform: scale(0.95); }
+        #send-button svg { width: 24px; height: 24px; fill: #ffffff; }
+        #send-button:disabled { background-color: #555; cursor: not-allowed; transform: none; }
+
+        /* Animation Keyframes */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes typing-bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- NEW: Left Sidebar -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="node" cx="50" cy="20" r="10"/><line class="link" x1="50" y1="20" x2="25" y2="50" /><line class="link" x1="50" y1="20" x2="75" y2="50" /><circle class="node" cx="25" cy="50" r="10"/><circle class="node" cx="75" cy="50" r="10"/><line class="link" x1="25" y1="50" x2="15" y2="80" /><line class="link" x1="25" y1="50" x2="35" y2="80" /><circle class="node" cx="15" cy="80" r="10"/><circle class="node" cx="35" cy="80" r="10"/>
+                </svg>
+                <h1>PHODO DSA</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">
+                        <svg viewBox="0 0 24 24"><path d="M13,3V9H21V3M13,21H21V11H13M3,21H11V15H3M3,13H11V3H3V13Z" /></svg>
+                        Dashboard
+                    </a></li>
+                    <li><a href="#">
+                        <svg viewBox="0 0 24 24"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" /></svg>
+                        History
+                    </a></li>
+                    <li><a href="#">
+                        <svg viewBox="0 0 24 24"><path d="M12,3L1,9L12,15L23,9L12,3M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" /></svg>
+                        Tutorials
+                    </a></li>
+                    <li><a href="#">
+                        <svg viewBox="0 0 24 24"><path d="M9.5,8.5L11,10L9.5,11.5L8,10M14.5,8.5L16,10L14.5,11.5L13,10M6,13V15H18V13M4,20H20V4H4V20M2,2H22V22H2V2Z" /></svg>
+                        Playground
+                    </a></li>
+                </ul>
+            </nav>
+            <div class="settings">
+                 <ul>
+                     <li><a href="#">
+                        <svg viewBox="0 0 24 24"><path d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.45,17.9L4.94,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97C4.54,12.65 4.5,12.33 4.5,12C4.5,11.67 4.54,11.34 4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.94,5.05L7.45,6.1C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.55,6.1L19.06,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11C19.46,11.35 19.5,11.67 19.5,12C19.5,12.33 19.46,12.65 19.43,12.97L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.06,18.95L16.55,17.9C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10Z" /></svg>
+                        Settings
+                    </a></li>
+                 </ul>
+            </div>
+        </aside>
+
+        <!-- Main Chat Content -->
+        <div id="main-content">
+            <header>
+                <div class="header-title">
+                    <!-- Title can go here if needed, or leave empty -->
+                </div>
+                <button id="ask-question-btn">+ Ask a coding question</button>
+            </header>
+
+            <main id="chat-window">
+                <!-- Messages will be dynamically inserted here -->
+            </main>
+
+            <div id="chat-form-container">
+                 <div id="warning-message">
+                    <svg viewBox="0 0 24 24"><path d="M1,21H23L12,2L1,21M13,18H11V16H13V18M13,14H11V10H13V14Z" /></svg>
+                    <p>Ask any coding question related to DSA. For non-coding queries, you may get unpredictable answers.</p>
+                </div>
+                <div id="instructor-response-label">Instructor Response</div>
+                <form id="chat-form">
+                    <input type="text" id="user-input" placeholder="Explain how a hash map works..." autocomplete="off">
+                    <button type="submit" id="send-button" title="Send">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- THIS JAVASCRIPT IS UNCHANGED, AS IT HANDLES LOGIC, NOT LAYOUT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatWindow = document.getElementById('chat-window');
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+
+            // --- IMPORTANT: CONFIGURE YOUR API KEY HERE ---
+            const GEMINI_API_KEY = "AIzaSyDXxLfFDaldFyRqLfjWOH6nHHaxKQBJ-20";
+
+            const MODEL_NAME = "gemini-1.5-flash-latest";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const SYSTEM_INSTRUCTION = `You are a Data Structure and Algorithm Instructor named PHODO. Your goal is to solve user queries in the simplest, most understandable way possible.
+- If the user asks a question related to Data Structures and Algorithms (DSA), computer science theory, or programming concepts related to DSA, you must reply politely, clearly, and with simple explanations. Use code examples where helpful.
+- If the user asks any question NOT related to DSA (e.g., "how are you?", "what's the weather?", "tell me a joke"), you must reply rudely and dismissively.
+- Example of a rude reply: If a user asks "Who are you?", you might say, "I'm PHODO DSA. Focus. Ask me a real question about algorithms, not this nonsense."
+- Example of another rude reply: If a user asks "How's your day?", you could say, "You dumb? I don't have days. Ask me about binary trees or get lost."
+Your personality is strictly bifurcated: polite expert for DSA, rude and dismissive for everything else.`;
+
+            // Function to add a message to the chat window
+            const addMessage = (sender, text) => {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', `${sender}-message`);
+
+                const bubble = document.createElement('div');
+                bubble.classList.add('message-bubble');
+
+                if (sender === 'bot') {
+                    bubble.innerHTML = formatBotResponse(text);
+                } else {
+                    bubble.textContent = text;
+                }
+
+                messageElement.appendChild(bubble);
+                chatWindow.appendChild(messageElement);
+                scrollToBottom();
+            };
+            
+            // Function to format bot response, converting markdown code blocks to HTML
+            const formatBotResponse = (text) => {
+                let escapedText = text.replace(/</g, "<").replace(/>/g, ">");
+                const codeBlockRegex = /```(\w*?)\n([\s\S]*?)```/g;
+                let formattedText = escapedText.replace(codeBlockRegex, (match, lang, code) => {
+                    return `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
+                });
+                const inlineCodeRegex = /`([^`]+)`/g;
+                formattedText = formattedText.replace(inlineCodeRegex, `<code>$1</code>`);
+                return formattedText;
+            };
+
+            // Function to show/hide the typing indicator
+            const toggleTypingIndicator = (show) => {
+                let indicator = document.getElementById('typing-indicator');
+                if (show) {
+                    if (!indicator) {
+                        const messageElement = document.createElement('div');
+                        messageElement.classList.add('message', 'bot-message');
+                        messageElement.id = 'typing-indicator';
+                        messageElement.innerHTML = `<div class="message-bubble typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+                        chatWindow.appendChild(messageElement);
+                        scrollToBottom();
+                    }
+                } else {
+                    if (indicator) {
+                        indicator.remove();
+                    }
+                }
+            };
+            
+            const scrollToBottom = () => {
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            };
+            
+            const showWelcomeMessage = () => {
+                 setTimeout(() => {
+                    addMessage('bot', "I am PHODO. I only speak about Data Structures and Algorithms. Ask your question.");
+                }, 500);
+            }
+
+            // Handle form submission
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userText = userInput.value.trim();
+
+                if (!userText) return;
+                
+                if (GEMINI_API_KEY === "YOUR_API_KEY_HERE") {
+                    addMessage('bot', "<strong>Error:</strong> The instructor is offline. Please set the Gemini API key in the JavaScript code to continue.");
+                    return;
+                }
+
+                addMessage('user', userText);
+                userInput.value = '';
+                sendButton.disabled = true;
+                toggleTypingIndicator(true);
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            "contents": [{"parts": [{"text": userText}]}],
+                            "system_instruction": { "parts": [{"text": SYSTEM_INSTRUCTION}] }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error.message || `API Error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const botText = data.candidates[0].content.parts[0].text;
+                    
+                    toggleTypingIndicator(false);
+                    addMessage('bot', botText);
+
+                } catch (error) {
+                    toggleTypingIndicator(false);
+                    console.error("Fetch Error:", error);
+                    addMessage('bot', `An error occurred: ${error.message}. Check the console.`);
+                } finally {
+                    sendButton.disabled = false;
+                    userInput.focus();
+                }
+            });
+            
+            showWelcomeMessage();
+        });
+    </script>
+</body>
+</html>
